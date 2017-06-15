@@ -11,13 +11,20 @@
 
     var $form = $("form[name$='users-edit']");
 
-    $("#create").click(function (e)//показати/сховати форму
+    $("h2>button").css
+    ({
+        "border-radius":"5px",
+        "box-shadow": "10px 10px 10px rgba(30, 30, 30, 0.5)"
+    });
+
+
+
+    $("#create").click(function (e)//показати/сховати форму при кліку на кнопку
     {
         e.preventDefault();
         if(e.target.tagName.toUpperCase()==="BUTTON")
         {
-            $($form).toggleClass("users-edit-hidden");
-            /*console.log("Create User");*/
+            showForm();
         }
     });
     $($form).click(function (e)//слухач на форму
@@ -31,10 +38,10 @@
             if ($($btn).attr("class")==="btn btn-save")//якщо клас btn-save пушимо на сервер і створюємо/редагуємо строку
             {
 
-            if(   $("#fullname")[0].value
-                &&$("#profession")[0].value
-                &&$("#address")[0].value
-                &&$("#short-info")[0].value)
+                if(   $("#fullname")[0].value
+                    &&$("#profession")[0].value
+                    &&$("#address")[0].value
+                    &&$("#short-info")[0].value)
                 {
                     var toCreate =
                         {
@@ -48,11 +55,30 @@
                             fullInfo:   $("#full-info")[0].value
                         };
 
+
+                    /*function returnTyp()
+                    {
+                        if(toCreate.id) //якщо є ід - то повертаемо метод редагувати
+                        {
+                            return "PUT";
+                        }
+                        return "POST"; // інакше створити
+                    }
+                    var data =JSON.stringify(toCreate);//тут джейсонимо
+                    $.ajax
+                    ({
+                        url: "/user?id=" + toCreate.id, type: returnTyp(), data: data, success: function (result)
+                        {
+                            // а тут ніц не робить
+                        }
+                    });*/
+
                     var xhr = new XMLHttpRequest();
                     xhr.open(toCreate.id ? "put":"post","/user");//якщо є ід - то "put" інакше "post"
                     xhr.responseType= "json";
                     xhr.setRequestHeader("Content-Type","application/json");//кажемо серверу що передаємо йому джейсон
                     var data =JSON.stringify(toCreate); // тут перетворюємо джейсон в строку
+                    /*console.log(data);*/
                     xhr.send(data); //відпраляємо запит та передаємо тепер ту строку
                     xhr.onreadystatechange = function ()
                     {
@@ -60,15 +86,17 @@
                         {
                             return;
                         }
+
                         var todo = this.response;
                         if ($form.attr("value"))
                         {
-                           editRow($form.attr("value"));
+                            editRow($form.attr("value"));
                         }
                         else
                         {
                             addRow(todo,$table);
                         }
+                        console.log(data);
                         $form.attr("value","");
                         $($form).toggleClass("users-edit-hidden");
                         clearForm();//почистити поля форми
@@ -125,23 +153,43 @@
     $($table).click(function (e)//слухач на кнопки видалення/редагування
     {
         e.preventDefault();
+
+
         if (e.target.tagName ==="BUTTON")
         {
              var $btn = e.target,
              $id = $($btn).attr("data-target");
+             targetRow($id,true);
              if ($($btn).attr("class")==="removeBtn")//якщо клас removeBtn то
              {
                  remove ($id);
-                 /*console.log($id);*/
-
              }
              else if ($($btn).attr("class")==="editBtn")
              {
-                 $($form).toggleClass("users-edit-hidden",false);
-                 setToEdit($id,$form);
+                 showForm(false);//сховати форму
+                 setToEdit($id,$form);//функція редагування обєкта
              }
         }
+
     });
+    function targetRow(id)//анімація на строку при кліку
+    {
+        if(id)
+        {
+            $("tr#"+id+">td").css({
+            "border-top":"2px solid red",
+            "border-bottom":"2px solid red"});
+            idStyle = id;
+            setTimeout(function ()
+            {
+                $("tr#"+id+">td").css({
+                    "border-top":"none",
+                    "border-bottom":"none",
+                    "transition": "opacity 0.3s"});// чого підкресло
+            },5000)
+        }
+
+    }
     function setToEdit(id,form)//функція заповнення форми табличними значеннями
     {
         form.attr("value",id);
@@ -177,22 +225,15 @@
     }
     function  remove(id) //функція видалення по ід
     {
-        var removeXhr = new XMLHttpRequest(); //спитати як запустити функцію видаленняя через $.
-        removeXhr.open("delete","/user?id="+id);
-        removeXhr.responseType="json";
-        removeXhr.onreadystatechange = function ()
+        $.ajax({url: "/user?id="+id,type: 'DELETE', success: function(result)
         {
-            if (this.readyState !== this.DONE)
-            {
-                return;
-            }
-            var rowToRemowe =$("#"+id)[0];// тут пизда повна спитати як правильно
-            rowToRemowe.parentElement.removeChild(rowToRemowe);
-            /*console.dir(rowToRemowe);*/
-        };
-        removeXhr.send();
+            /*console.log(result);*/
+            $("tr#"+result).remove();// клас ) во як правильно
+        }
+        });
+
     }
-    function clearForm ()
+    function clearForm ()//очищення форми
     {
         $("#fullname")[0].value="";
         $("#birthday")[0].value="";
@@ -200,5 +241,14 @@
         $("#address")[0].value="";
         $("#short-info")[0].value="";
         $("#full-info")[0].value="";
+    }
+    function showForm(bool)//ф-ція показати заховати форму+стилі форми
+    {
+        $form.toggleClass("users-edit-hidden",bool);
+        $form.css
+        ({
+            "position": "fixed"
+        });
+
     }
 })(jQuery);
