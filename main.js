@@ -56,7 +56,7 @@
                         };
 
 
-                    /*function returnTyp()
+                    function returnTyp()
                     {
                         if(toCreate.id) //якщо є ід - то повертаемо метод редагувати
                         {
@@ -67,18 +67,35 @@
                     var data =JSON.stringify(toCreate);//тут джейсонимо
                     $.ajax
                     ({
-                        url: "/user?id=" + toCreate.id, type: returnTyp(), data: data, success: function (result)
+                        contentType: "application/json",
+                        url: "/user?id=" + toCreate.id,
+                        type: returnTyp(),
+                        data: data,
+                        success: function (result)
                         {
-                            // а тут ніц не робить
+                            //result - це обєкт який ветає серер
+                            var $todo = result;
+                            if ($form.attr("value"))
+                            {
+                                editRow($form.attr("value"));
+                            }
+                            else
+                            {
+                                addRow($todo,$table);
+                            }
+                            console.log(data);
+                            $form.attr("value","");
+                            $($form).toggleClass("users-edit-hidden");
+                            clearForm();//почистити поля форми
                         }
-                    });*/
+                    });
 
-                    var xhr = new XMLHttpRequest();
+                   /* var xhr = new XMLHttpRequest();
                     xhr.open(toCreate.id ? "put":"post","/user");//якщо є ід - то "put" інакше "post"
                     xhr.responseType= "json";
                     xhr.setRequestHeader("Content-Type","application/json");//кажемо серверу що передаємо йому джейсон
                     var data =JSON.stringify(toCreate); // тут перетворюємо джейсон в строку
-                    /*console.log(data);*/
+                    /!*console.log(data);*!/
                     xhr.send(data); //відпраляємо запит та передаємо тепер ту строку
                     xhr.onreadystatechange = function ()
                     {
@@ -100,7 +117,7 @@
                         $form.attr("value","");
                         $($form).toggleClass("users-edit-hidden");
                         clearForm();//почистити поля форми
-                    };
+                    };*/
                 }
             }
             else if ($($btn).attr("class")==="btn btn-cancel")
